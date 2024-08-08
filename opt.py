@@ -266,7 +266,10 @@ def gen_objective(
   return objective
 
 study_name = args.study_name
-study_db_name = "sqlite:///optuna.sqlite"
+optuna_db_root_dir = 'optuna_db'
+Path(optuna_db_root_dir).mkdir(exist_ok=True, parents=True)
+study_db_name = f"sqlite:///{optuna_db_root_dir}/{study_name}.sqlite"
+print(f'[OPTUNA_DB]: {study_db_name}')
 if study_name in optuna.study.get_all_study_names(storage=study_db_name):
   print('load_study')
   study = optuna.load_study(study_name=study_name, storage=study_db_name, sampler=optuna.samplers.TPESampler(seed=args.seed))

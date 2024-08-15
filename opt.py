@@ -92,16 +92,16 @@ def gen_objective(
   link_prediction_model_list = WalkList(Path(cache_dir) / 'link_prediction_model')
   Path(log_dir).mkdir(exist_ok=True, parents=True)
   def objective(trial):
-      experiment_id = f'{trial._trial_id:08d}'
+        experiment_id = f'{trial._trial_id:08d}'
 
       
 
-      with open(f'{log_dir}/{experiment_id}.log', 'w') as fp:
 
         def print_log(*args, **kwargs):
+          with open(f'{log_dir}/{experiment_id}.log', 'a') as fp_log:
             if 'file' in kwargs:
                 raise
-            print(*args, **kwargs, file=fp, flush=True)
+            print(*args, **kwargs, file=fp_log, flush=True)
             print(*args, **kwargs, flush=True)
 
         experiment_args = dict()
@@ -213,18 +213,18 @@ def gen_objective(
         trial.set_user_attr('link_prediction_cache_dir', str(output_dirpath))
         output_log_filepath = Path(f'{output_dirpath}/train.log')
         print_log(f'[LINK PREDICTION] CACHE DIR: {output_dirpath}')
-        if not output_log_filepath.exists():
-          print_log(f'[LINK PREDICTION] RUN TRAINING SCRIPT')
-          output_dirpath.mkdir(exist_ok=True, parents=True)
-          # print(output_dirpath)
-          # trial.set_user_attr('link_prediction_args', link_prediction_args)
-          link_prediction_args_str = ' '.join(f'--{key} {value}' for key, value in link_prediction_args.items())
-          link_prediction_command = f'''
+        link_prediction_args_str = ' '.join(f'--{key} {value}' for key, value in link_prediction_args.items())
+        link_prediction_command = f'''
           env PYTHONPATH=`pwd`/tools/OpenKE poetry run \\
             python3 -u tools/OpenKE/train_transe_FB15K237_wd.py --output {output_dirpath} \\
               {link_prediction_args_str} 2>&1 \\
           | tee -a {output_log_filepath}
           '''
+        if not output_log_filepath.exists():
+          print_log(f'[LINK PREDICTION] RUN TRAINING SCRIPT')
+          output_dirpath.mkdir(exist_ok=True, parents=True)
+          # print(output_dirpath)
+          # trial.set_user_attr('link_prediction_args', link_prediction_args)
           print_log(f'[CMD]: {link_prediction_command}')
           # print(link_prediction_command)
           output = subprocess.run(

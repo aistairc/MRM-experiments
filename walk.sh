@@ -101,7 +101,7 @@ mkdir -p ${DIR}
 java -jar tools/RDF-star2Vec/rdf-star2vec_2.0.0-SNAPSHOT.jar \
 	-graph ${N_TRIPLE_FIILPATH} \
 	-onlyWalks \
-	-walkDir ${TMPDIR}/walk \
+	-walkDir ${DIR}/walk \
 	-walkGenerationMode ${walkGenerationMode:-'RANDOM_WALKS'} \
 	-depth ${depth:-8} \
 	-qt2subject ${qt2subject:-0.5} \
@@ -113,10 +113,9 @@ java -jar tools/RDF-star2Vec/rdf-star2vec_2.0.0-SNAPSHOT.jar \
 	2>&1 \
 
 # 
-gzip -f -d ${TMPDIR}/walk/walk_file_0.txt.gz
+gzip -f -d ${DIR}/walk/walk_file_0.txt.gz
 
-mkdir -p ${DIR}
-mv ${TMPDIR}/walk/walk_file_0.txt ${OUTPUT_FILEPATH}
-# mv ${TMPDIR}/walk/walk_file_0.txt.gz ${DIR}/
-rm ${TMPDIR}/walk/walk_file_0.txt.gz
+mv ${DIR}/walk/walk_file_0.txt ${OUTPUT_FILEPATH}
+# mv ${DIR}/walk/walk_file_0.txt.gz ${DIR}/
+# rm ${DIR}/walk/walk_file_0.txt.gz
 # # tools/word2vec -train walk/walk_file_0.txt -output v100.txt -type 3 -size 100 -threads 4 -min-count 0 -cap 1

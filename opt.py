@@ -91,6 +91,7 @@ def gen_objective(
   word2vec_list = WalkList(Path(cache_dir) / 'word2vec')
   link_prediction_model_list = WalkList(Path(cache_dir) / 'link_prediction_model')
   Path(log_dir).mkdir(exist_ok=True, parents=True)
+  progress_memo_filepath = f"{cache_dir}/progress.txt"
   def objective(trial):
         experiment_id = f'{trial._trial_id:08d}'
 
@@ -103,6 +104,11 @@ def gen_objective(
                 raise
             print(*args, **kwargs, file=fp_log, flush=True)
             print(*args, **kwargs, flush=True)
+
+        def progress_memo(*args, **kwargs):
+            with open(progress_memo_filepath, 'a') as fp_progress:
+                args = [datetime.now(), *args]
+                print(*args, **kwargs, file=fp_progress, flush=True)
 
         experiment_args = dict()
         trial.set_user_attr('experiment_id', experiment_id)
@@ -164,6 +170,7 @@ def gen_objective(
         walk_filepath = output_filepath
         print_log(f'[WAKL] END')
         print_log(f'[TIME]: {datetime.now()}')
+        progress_memo(f'{output_filepath.parent}: DONE')
   
     
         # +++++++++++++++
@@ -191,6 +198,7 @@ def gen_objective(
           print_log(f'[WORD2VEC] CACHE WILL BE USED: {output_filepath}')
         print_log(f'[WORD2VEC] END')
         print_log(f'[TIME]: {datetime.now()}')
+        progress_memo(f'{output_filepath.parent}: DONE')
   
         
         # +++++++++++++++
@@ -242,6 +250,7 @@ def gen_objective(
         print_log(f'[LINK PREDICTION] END')
         print_log(f'[TIME]: {datetime.now()}')
         # data_dir_path = input_file.rsplit('/', 2)[0] + '/rdr'
+        progress_memo(f'{output_dirpath}: DONE')
   
         #################
         experiment_args.update({

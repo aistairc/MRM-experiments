@@ -14,6 +14,7 @@ parser.add_argument('--mrm_type')
 parser.add_argument('--cache_dir', default='cache')
 parser.add_argument('--log_dir', default='logs')
 parser.add_argument('--study_name')
+parser.add_argument('--trans_model_type', default='transe')
 parser.add_argument('--seed', type=int, default=42)
 args = parser.parse_args()
 
@@ -79,7 +80,7 @@ def gen_objective(
         mrm_type='rdr', input_file='in', 
         log_dir='logs', cache_dir='cache',
         link_prediction_dataset = None,
-        seed=42,
+        seed=42, trans_model_type = 'transe'
     ):
   '''
   mrm_type: a type of meta data model. ['rdr', 'sgprop', 'rc']
@@ -222,9 +223,18 @@ def gen_objective(
         output_log_filepath = Path(f'{output_dirpath}/train.log')
         print_log(f'[LINK PREDICTION] CACHE DIR: {output_dirpath}')
         link_prediction_args_str = ' '.join(f'--{key} {value}' for key, value in link_prediction_args.items())
+        
+        if trans_model_type.lower() == 'transe':
+            trans_model_training_script = 'tools/OpenKE/train_transe_FB15K237_wd.py'
+        elif trans_model_type.lower() == 'transr':
+            trans_model_training_script = 'tools/OpenKE/train_transr.py'
+        else:
+            raise
+
+        
         link_prediction_command = f'''
           env PYTHONPATH=`pwd`/tools/OpenKE poetry run \\
-            python3 -u tools/OpenKE/train_transe_FB15K237_wd.py --output {output_dirpath} \\
+            python3 -u {trans_model_training_script} --output {output_dirpath} \\
               {link_prediction_args_str} 2>&1 \\
           | tee -a {output_log_filepath}
           '''
@@ -295,6 +305,7 @@ study.optimize(
             cache_dir=f'{args.cache_dir}/{args.study_name}',
             log_dir=f'{args.log_dir}/{args.study_name}',
             seed = args.seed,
+            trans_model_type = args.trans_model_type,
         ), 
         n_trials=None,
 )

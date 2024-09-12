@@ -9,6 +9,7 @@ python3 opt.py \
 
 ```
 
+# Plot experiment result
 ```shell
 poetry run python3 plot.py optuna_db # optuna_db is a directory including optuna study database
 ```

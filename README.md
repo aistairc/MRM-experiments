@@ -9,5 +9,9 @@ python3 opt.py \
 
 ```
 
+```shell
+poetry run python3 plot.py optuna_db # optuna_db is a directory including optuna study database
+```
+
 # DATASET
 LinkPrediction: `data/dataset/ikgrc2023.cleaned/*/tasks/link_prediction/`

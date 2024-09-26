@@ -13,6 +13,7 @@ from .RESCAL import RESCAL
 from .Analogy import Analogy
 from .SimplE import SimplE
 from .RotatE import RotatE
+from .TransU import TransU
 
 __all__ = [
     'Model',

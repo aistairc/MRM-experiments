@@ -14,5 +14,10 @@ python3 opt.py \
 poetry run python3 plot.py optuna_db # optuna_db is a directory including optuna study database
 ```
 
+## Loss curve
+```shell
+poetry run python3 plot_loss.py
+```
+
 # DATASET
 LinkPrediction: `data/dataset/ikgrc2023.cleaned/*/tasks/link_prediction/`

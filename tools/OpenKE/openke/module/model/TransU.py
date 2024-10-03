@@ -108,7 +108,7 @@ class TransU(Model):
             input_ids = [org_id_to_transu_id[int(i)] for i in ids]
 
             if isinstance(ids, torch.Tensor):
-                return torch.tensor(ids, device=ids.device, dtype=ids.dtype)
+                return torch.tensor(input_ids, device=ids.device, dtype=ids.dtype)
             elif isinstance(ids, list):
                 return input_ids
             else:

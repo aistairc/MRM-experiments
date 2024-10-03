@@ -16,6 +16,7 @@ parser.add_argument('--log_dir', default='logs')
 parser.add_argument('--study_name')
 parser.add_argument('--trans_model_type', default='transe')
 parser.add_argument('--seed', type=int, default=42)
+parser.add_argument('--no_save_process_state', action='store_true')
 args = parser.parse_args()
 
 def get_hash(args):
@@ -80,7 +81,8 @@ def gen_objective(
         mrm_type='rdr', input_file='in', 
         log_dir='logs', cache_dir='cache',
         link_prediction_dataset = None,
-        seed=42, trans_model_type = 'transe'
+        seed=42, trans_model_type = 'transe',
+        save_process_state = True,
     ):
   '''
   mrm_type: a type of meta data model. ['rdr', 'sgprop', 'rc']
@@ -90,7 +92,7 @@ def gen_objective(
 
   walk_list = WalkList(Path(cache_dir) / 'walk')
   word2vec_list = WalkList(Path(cache_dir) / 'word2vec')
-  link_prediction_model_list = WalkList(Path(cache_dir) / 'link_prediction_model')
+  link_prediction_model_list = WalkList(Path(cache_dir) / f'link_prediction_model/{trans_model_type}')
   Path(log_dir).mkdir(exist_ok=True, parents=True)
   progress_memo_filepath = f"{cache_dir}/progress.txt"
   def objective(trial):
@@ -171,7 +173,9 @@ def gen_objective(
         walk_filepath = output_filepath
         print_log(f'[WAKL] END')
         print_log(f'[TIME]: {datetime.now()}')
-        progress_memo(f'{output_filepath.parent}: DONE')
+        
+        if save_process_state:
+          progress_memo(f'{output_filepath.parent}: DONE')
   
     
         # +++++++++++++++
@@ -199,7 +203,8 @@ def gen_objective(
           print_log(f'[WORD2VEC] CACHE WILL BE USED: {output_filepath}')
         print_log(f'[WORD2VEC] END')
         print_log(f'[TIME]: {datetime.now()}')
-        progress_memo(f'{output_filepath.parent}: DONE')
+        if save_process_state:
+          progress_memo(f'{output_filepath.parent}: DONE')
   
         
         # +++++++++++++++
@@ -218,7 +223,7 @@ def gen_objective(
         }
   
   
-        output_dirpath = link_prediction_model_list.get_dir_path(link_prediction_args)
+        output_dirpath = link_prediction_model_list.get_dir_path(link_prediction_args) 
         trial.set_user_attr('link_prediction_cache_dir', str(output_dirpath))
         output_log_filepath = Path(f'{output_dirpath}/train.log')
         print_log(f'[LINK PREDICTION] CACHE DIR: {output_dirpath}')
@@ -228,6 +233,8 @@ def gen_objective(
             trans_model_training_script = 'tools/OpenKE/train_transe_FB15K237_wd.py'
         elif trans_model_type.lower() == 'transr':
             trans_model_training_script = 'tools/OpenKE/train_transr.py'
+        elif trans_model_type.lower() == 'transu':
+            trans_model_training_script = 'tools/OpenKE/train_transu.py'
         else:
             raise
 
@@ -260,7 +267,8 @@ def gen_objective(
         print_log(f'[LINK PREDICTION] END')
         print_log(f'[TIME]: {datetime.now()}')
         # data_dir_path = input_file.rsplit('/', 2)[0] + '/rdr'
-        progress_memo(f'{output_dirpath}: DONE')
+        if save_process_state:
+          progress_memo(f'{output_dirpath}: DONE')
   
         #################
         experiment_args.update({
@@ -284,8 +292,9 @@ def gen_objective(
 
   return objective
 
-study_name = args.study_name
-optuna_db_root_dir = 'optuna_db'
+study_name = args.study_name # study name is MRM type
+trans_model_type = args.trans_model_type.lower()
+optuna_db_root_dir = f'optuna_db/{study_name}/{trans_model_type}'
 Path(optuna_db_root_dir).mkdir(exist_ok=True, parents=True)
 study_db_name = f"sqlite:///{optuna_db_root_dir}/{study_name}.sqlite"
 print(f'[OPTUNA_DB]: {study_db_name}')
@@ -305,7 +314,8 @@ study.optimize(
             cache_dir=f'{args.cache_dir}/{args.study_name}',
             log_dir=f'{args.log_dir}/{args.study_name}',
             seed = args.seed,
-            trans_model_type = args.trans_model_type,
+            trans_model_type = trans_model_type,
+            save_process_state = not args.no_save_process_state,
         ), 
         n_trials=None,
 )

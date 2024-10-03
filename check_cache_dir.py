@@ -7,9 +7,10 @@ from datetime import datetime
 cache directory にあるもののうち，処理が終わらずに Job が終了したものをリストアップするスクリプト
 '''
 
+incompete_process_dir = []
 
 for mrm in ['rdr', 'rc', 'sgprop']:
-  print(f"++ {mrm} ++")
+  print(f"\n\n++ {mrm} ++")
   target_dir = f'cache/{mrm}'
   
   finished_processes = set()
@@ -29,10 +30,15 @@ for mrm in ['rdr', 'rc', 'sgprop']:
   
   for name in ['walk', 'link_prediction_model', 'word2vec']:
       for dir_path in sorted(glob(f'{target_dir}/{name}/*'), key=lambda f: os.stat(f).st_mtime, reverse=True):
+        if datetime.fromtimestamp(os.stat(dir_path).st_mtime) < oldest_time:
+          continue
+
         if dir_path not in finished_processes:
-          if datetime.fromtimestamp(os.stat(dir_path).st_mtime) < oldest_time:
-              continue
           print(f"\n== {dir_path} ==")
+          incompete_process_dir.append(dir_path)
           for child in glob(f"{dir_path}/**/*", recursive=True):
               print(child)
+
+print(f"\n\n== list of incomplete process dir ==")
+print('\n'.join(incompete_process_dir))
   

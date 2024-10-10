@@ -45,15 +45,16 @@ class TransU(Model):
                 embeddings = torch.stack(embeddings)
                 print(f'[EMBEDDINGS MATCHED]: {counts / len(uris_to_id) * 100:.2f}')
                 
-                self.org_id_to_transu_id_for_rel = dict()
-                self.org_id_to_transu_id_for_ent = dict()
 
+                self.org_id_to_transu_id_for_ent = torch.zeros(len(original_ent_map), dtype=torch.long)
+                self.org_id_to_transu_id_for_rel = torch.zeros(len(original_rel_map), dtype=torch.long)
+                
                 for k, v in original_ent_map.items():
-                    self.org_id_to_transu_id_for_ent[k] = uris_to_id[v]
+                    self.org_id_to_transu_id_for_ent[int(k)] = int(uris_to_id[v])
                 
                 for k, v in original_rel_map.items():
-                    self.org_id_to_transu_id_for_rel[k] = uris_to_id[v]
-                
+                    self.org_id_to_transu_id_for_rel[int(k)] = int(uris_to_id[v])
+
                 self.ent_embeddings = nn.Embedding(len(uris), self.dim)
                 self.ent_embeddings.weight.data = embeddings.to(self.ent_embeddings.weight.data.device).to(self.ent_embeddings.weight.data.dtype)
                 # print(self.ent_embeddings.weight.data.shape)
@@ -67,23 +68,23 @@ class TransU(Model):
                             assert self.org_id_to_transu_id_for_ent[e_id] != self.org_id_to_transu_id_for_rel[r_id]
 
 
-                if margin == None or epsilon == None:
-                        nn.init.xavier_uniform_(self.ent_embeddings.weight.data)
-                        # nn.init.xavier_uniform_(self.rel_embeddings.weight.data)
-                else:
-                        self.embedding_range = nn.Parameter(
-                                torch.Tensor([(self.margin + self.epsilon) / self.dim]), requires_grad=False
-                        )
-                        nn.init.uniform_(
-                                tensor = self.ent_embeddings.weight.data, 
-                                a = -self.embedding_range.item(), 
-                                b = self.embedding_range.item()
-                        )
-                        # nn.init.uniform_(
-                        #         tensor = self.rel_embeddings.weight.data, 
-                        #         a= -self.embedding_range.item(), 
-                        #         b= self.embedding_range.item()
-                        # )
+                # if margin == None or epsilon == None:
+                #         nn.init.xavier_uniform_(self.ent_embeddings.weight.data)
+                #         # nn.init.xavier_uniform_(self.rel_embeddings.weight.data)
+                # else:
+                #         self.embedding_range = nn.Parameter(
+                #                 torch.Tensor([(self.margin + self.epsilon) / self.dim]), requires_grad=False
+                #         )
+                #         nn.init.uniform_(
+                #                 tensor = self.ent_embeddings.weight.data, 
+                #                 a = -self.embedding_range.item(), 
+                #                 b = self.embedding_range.item()
+                #         )
+                #         # nn.init.uniform_(
+                #         #         tensor = self.rel_embeddings.weight.data, 
+                #         #         a= -self.embedding_range.item(), 
+                #         #         b= self.embedding_range.item()
+                #         # )
 
                 if margin != None:
                         self.margin = nn.Parameter(torch.Tensor([margin]))
@@ -100,12 +101,14 @@ class TransU(Model):
 
         def apply_map(self, ids, mode='ent'):
             if   mode == 'ent':
+                self.org_id_to_transu_id_for_ent = self.org_id_to_transu_id_for_ent.to(ids.device)
                 org_id_to_transu_id = self.org_id_to_transu_id_for_ent
             elif mode == 'rel':
+                self.org_id_to_transu_id_for_rel = self.org_id_to_transu_id_for_rel.to(ids.device)
                 org_id_to_transu_id = self.org_id_to_transu_id_for_rel
             else:
                 raise
-            input_ids = [org_id_to_transu_id[int(i)] for i in ids]
+            input_ids = org_id_to_transu_id[ids]
 
             if isinstance(ids, torch.Tensor):
                 return torch.tensor(input_ids, device=ids.device, dtype=ids.dtype)

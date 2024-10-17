@@ -1,0 +1,23 @@
+# PREFIX kgc: <http://kgc.knowledge-graph.jp/ontology/kgc.owl#>
+# PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+# PREFIX kgc: <http://kgc.knowledge-graph.jp/ontology/kgc.owl#>
+# PREFIX kdp: <http://kgc.knowledge-graph.jp/data/predicate/>
+# PREFIX sb: <http://kgc.knowledge-graph.jp/data/SpeckledBand/>
+# PREFIX dm: <http://kgc.knowledge-graph.jp/data/DancingMen/>
+# PREFIX ci: <http://kgc.knowledge-graph.jp/data/ACaseOfIdentity/>
+# PREFIX df: <http://kgc.knowledge-graph.jp/data/DevilsFoot/>
+# PREFIX cm: <http://kgc.knowledge-graph.jp/data/CrookedMan/>
+# PREFIX ag: <http://kgc.knowledge-graph.jp/data/AbbeyGrange/>
+# PREFIX sl: <http://kgc.knowledge-graph.jp/data/SilverBlaze/>
+# PREFIX rp: <http://kgc.knowledge-graph.jp/data/ResidentPatient/>
+# PREFIX owl: <http://www.w3.org/2002/07/owl#>
+# PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+# PREFIX xmls: <http://www.w3.org/2001/XMLSchema#>
+# PREFIX cc: <http://creativecommons.org/ns#>
+
+SELECT DISTINCT ?s ?p ?o
+WHERE {
+  ?s ?p ?o .
+  filter(isURI(?o))
+  BIND(RAND() AS ?sortKey)
+} ORDER BY ?sortKey

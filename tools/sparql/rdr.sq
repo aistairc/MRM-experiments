@@ -1,0 +1,13 @@
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+SELECT DISTINCT ?s ?p ?o
+WHERE {{
+        ?s ?p ?o .
+    } union {
+        <<?s ?p ?o>> ?p2 ?o2 .
+        filter(!isLiteral(?o2))
+    } union {
+        << << ?s ?p ?o>> rdf:value ?v >> ?p2 ?o2 .
+        filter(!isLiteral(?o2)) }
+    filter(!isLiteral(?o))
+    BIND(RAND() AS ?sortKey)
+} ORDER BY ?sortKey

@@ -6,6 +6,7 @@ import sys
 import os
 from datetime import datetime
 import argparse
+from time import sleep
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--link_prediction_dataset')
@@ -50,6 +51,7 @@ def run_walk(args, output_file, loggre=None):
 class CacheList:
     def __init__(self, cache_dir):
         self.cache_dir = cache_dir
+        self.cache_dir.mkdir(exist_ok=True, parents=True)
 
     def is_cached(self, walk_args):
         pass
@@ -76,6 +78,15 @@ class Word2VecEmbeddingsList(CacheList):
     def __init__():
         pass
 
+def wait(
+  condition,
+  timeout=1800 # sec
+):
+    start = datetime.now()
+    while (datetime.now() - start).total_seconds() < timeout:
+        if condition():
+            break
+        sleep(30)
     
 def gen_objective(
         mrm_type='rdr', input_file='in', 
@@ -165,6 +176,16 @@ def gen_objective(
         output_filepath = walk_list.get_dir_path(walk_args) / 'walk.txt'
         trial.set_user_attr('walk_cache_dir', str(walk_list.get_dir_path(walk_args)))
         print_log(f'[WAKL] CACHE DIR: {output_filepath.parent}')
+
+        # wait other process which creating the target file
+        print_log("[CHECK & WAIT CONFLICT PROCESS]")
+        if output_filepath.parent.exists() and not output_filepath.exists():
+            timeout = 1800
+            print_log(f"[CONFLICT PROCESS FOUND] wait it (max {timeout} sec)")
+            wait(lambda : output_filepath.parent.exists() and not output_filepath.exists(), timeout=timeout)
+        else:
+            print_log(f"[CONFLICT PROCESS NOT FOUND]")
+
         if not output_filepath.exists():
           print_log(f'[WAKL] RUN WALK SCRIPT')
           run_walk(walk_args, output_filepath, loggre=print_log)
@@ -194,8 +215,19 @@ def gen_objective(
         trial.set_user_attr('word2vec_cache_dir', str(word2vec_list.get_dir_path(word2vec_args)))
         embeddings_filepath = output_filepath
         
-        # trial.set_user_attr('word2vec_args', word2vec_args)
         print_log(f'[WORD2VEC] CACHE DIR: {output_filepath.parent}')
+        
+        # wait other process which creating the target file
+        print_log("[CHECK & WAIT CONFLICT PROCESS]")
+        if output_filepath.parent.exists() and not output_filepath.exists():
+            timeout = 1800
+            print_log(f"[CONFLICT PROCESS FOUND] wait it (max {timeout} sec)")
+            wait(lambda : output_filepath.parent.exists() and not output_filepath.exists(), timeout=timeout)
+        else:
+            print_log(f"[CONFLICT PROCESS NOT FOUND]")
+
+        
+        # trial.set_user_attr('word2vec_args', word2vec_args)
         if not output_filepath.exists():
           print_log(f'[WORD2VEC] RUN WORD2VEC SCRIPT')
           run_word2vec(word2vec_args, output_filepath, loggre=print_log)

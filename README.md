@@ -33,4 +33,4 @@ poetry run python3 show_best_scores.py
 LinkPrediction: `data/dataset/ikgrc2023.cleaned/*/tasks/link_prediction/`
 
 ## KGE model (RDF-star2Vec<sub>ext</sub>)
-https://anonymous.4open.science/status/RDF-star2Vec-982F
+https://anonymous.4open.science/r/RDF-star2Vec-982F/
